@@ -16,12 +16,18 @@ DiaroLocation = namedtuple('DiaroLocation', DIARO_LOCATION_PROPS)
 DIARO_ATTACHMENT_PROPS = ['entry_uid', 'type', 'filename', 'position']
 DiaroAttachment = namedtuple('DiaroAttachment', DIARO_ATTACHMENT_PROPS)
 
+DIARO_ENTRY_PROPS = ['date', 'tz_offset', 'title', 'text',
+                     'folder_uid', 'location_uid', 'tags',
+                     'primary_photo_uid']
+DiaroEntry = namedtuple('DiaroEntry', DIARO_ENTRY_PROPS)
+
 
 class Diaro(object):
     def __init__(self, filename):
         self.folders = {}  # uid -> DiaroFolder
         self.locations = {}  # uid -> DiaroLocation
         self.attachments = {}  # uid -> DiaroAttachment
+        self.entries = {}  # uid -> DiaroEntry
 
         root = ET.parse(filename).getroot()
         self._parse_root(root)
@@ -69,6 +75,19 @@ class Diaro(object):
                 self.locations[uid] = diaro_location
                 logging.info("location: %s", uid)
 
+    def _parse_entries(self, entries):
+        for entry in entries:
+            assert entry.tag == 'r'
+            properties = self._gather_properties(entry, DIARO_ENTRY_PROPS)
+            if None in properties.values():
+                logging.error("incomplete property list for entry: %r",
+                              properties)
+            else:
+                uid = properties.pop('uid')
+                diaro_entry = DiaroEntry(**properties)
+                self.entries[uid] = diaro_entry
+                logging.info("entry: %s", uid)
+
     def _parse_attachments(self, attachments):
         for attachment in attachments:
             assert attachment.tag == 'r'
@@ -94,6 +113,8 @@ class Diaro(object):
                     self._parse_folders(child)
                 elif name == 'diaro_locations':
                     self._parse_locations(child)
+                elif name == 'diaro_entries':
+                    self._parse_entries(child)
                 elif name == 'diaro_attachments':
                     self._parse_attachments(child)
                 else:
