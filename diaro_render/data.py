@@ -13,11 +13,15 @@ DiaroFolder = namedtuple('DiaroFolder', DIARO_FOLDER_PROPS)
 DIARO_LOCATION_PROPS = ['title', 'address', 'lat', 'lng', 'zoom']
 DiaroLocation = namedtuple('DiaroLocation', DIARO_LOCATION_PROPS)
 
+DIARO_ATTACHMENT_PROPS = ['entry_uid', 'type', 'filename', 'position']
+DiaroAttachment = namedtuple('DiaroAttachment', DIARO_ATTACHMENT_PROPS)
+
 
 class Diaro(object):
     def __init__(self, filename):
         self.folders = {}  # uid -> DiaroFolder
         self.locations = {}  # uid -> DiaroLocation
+        self.attachments = {}  # uid -> DiaroAttachment
 
         root = ET.parse(filename).getroot()
         self._parse_root(root)
@@ -44,8 +48,8 @@ class Diaro(object):
             assert folder.tag == 'r'
             properties = self._gather_properties(folder, DIARO_FOLDER_PROPS)
             if None in properties.values():
-                logging.error("incomplete property list for folder %s",
-                              properties.get('uid', '(?)'))
+                logging.error("incomplete property list for folder: %r",
+                              properties)
             else:
                 uid = properties.pop('uid')
                 diaro_folder = DiaroFolder(**properties)
@@ -57,14 +61,27 @@ class Diaro(object):
             assert location.tag == 'r'
             properties = self._gather_properties(location, DIARO_LOCATION_PROPS)
             if None in properties.values():
-                logging.error("incomplete property list for location %s",
-                              properties.get('uid', '(?)'))
-                logging.error("properties: %r", properties)
+                logging.error("incomplete property list for location: %r",
+                              properties)
             else:
                 uid = properties.pop('uid')
                 diaro_location = DiaroLocation(**properties)
                 self.locations[uid] = diaro_location
                 logging.info("location: %s", uid)
+
+    def _parse_attachments(self, attachments):
+        for attachment in attachments:
+            assert attachment.tag == 'r'
+            properties = self._gather_properties(attachment,
+                                                 DIARO_ATTACHMENT_PROPS)
+            if None in properties.values():
+                logging.error("incomplete property list for attachment: %r",
+                              properties)
+            else:
+                uid = properties.pop('uid')
+                diaro_attachment = DiaroAttachment(**properties)
+                self.attachments[uid] = diaro_attachment
+                logging.info("attachment: %s", uid)
 
     def _parse_root(self, root):
         assert root.tag == 'data'
@@ -77,6 +94,8 @@ class Diaro(object):
                     self._parse_folders(child)
                 elif name == 'diaro_locations':
                     self._parse_locations(child)
+                elif name == 'diaro_attachments':
+                    self._parse_attachments(child)
                 else:
                     raise NotImplementedError
             else:

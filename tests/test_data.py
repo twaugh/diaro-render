@@ -116,3 +116,31 @@ class TestDiaro(object):
         assert location.lat == '50.000000'
         assert location.lng == '-1.600000'
         assert location.zoom == '5'
+
+    def test_attachment(self):
+        xml = dedent("""\
+            <data version="2">
+            <table name="diaro_attachments">
+            <r>
+               <uid>1</uid>
+               <entry_uid>2</entry_uid>
+               <type>photo</type>
+               <filename>photo.jpg</filename>
+               <position>1</position>
+            </r>
+            </table>
+            </data>
+            """)
+
+        with NamedTemporaryFile(mode='w') as fp:
+            fp.write(xml)
+            fp.flush()
+            diaro = Diaro(filename=fp.name)
+
+        assert len(diaro.attachments) == 1
+        assert '1' in diaro.attachments
+        attachment = diaro.attachments['1']
+        assert attachment.entry_uid == '2'
+        assert attachment.type == 'photo'
+        assert attachment.filename == 'photo.jpg'
+        assert attachment.position == '1'
