@@ -19,6 +19,7 @@ class CLI(object):
                             default='')
         parser.add_argument('--summary', action='store_true',
                             help='show summary instead of HTML output')
+        parser.add_argument('--only-year', help='only render entries from year')
         self.namespace = parser.parse_args(args=args)
 
     def run(self):
@@ -31,6 +32,14 @@ class CLI(object):
             return
 
         entries = diaro.get_entries_for_folder(self.namespace.folder)
+
+        if self.namespace.only_year:
+            only_year = int(self.namespace.only_year)
+            year_entries = [(datetime.fromtimestamp(entry.date / 1000.0).year,
+                             entry) for entry in entries]
+            entries = [entry for year, entry in year_entries
+                       if year == only_year]
+
         if self.namespace.summary:
             for entry in entries:
                 print("{date}: {title}".format(date=entry.date,
