@@ -2,7 +2,6 @@ from __future__ import absolute_import
 from argparse import ArgumentParser
 from diaro_render.data import Diaro
 from datetime import datetime, timedelta
-from textwrap import dedent
 import os.path
 
 
@@ -57,9 +56,7 @@ class CLI(object):
             attachments = diaro.get_attachments_for_entry(entry.uid)
             for attachment in attachments:
                 assert attachment.type == 'photo'
-                fmt = """
-                  <div><a href="{imgfullpath}"><img src="{imgthumbpath}" alt="" /><a></div>
-                  """
+                fmt = '<div><a href="{imgfullpath}"><img src="{imgthumbpath}" alt="" /><a></div>'
                 filename, ext = os.path.splitext(attachment.filename)
                 photo += fmt.format(
                     imgfullpath=os.path.join(mediapath,
@@ -67,17 +64,18 @@ class CLI(object):
                     imgthumbpath=os.path.join(mediapath,
                                               filename + thumbsuffix + ext))
 
-            print(dedent("""\
-                <div>
-                  <!-- entry -->
-                  <h3>{title}</h3>
-                  <b>{date}</b> <i>{time}</i>
-                  <p>{text}</p>{photo}
-                </div>
-                """.format(date=date, time=time,
-                           title=entry.title,
-                           text=entry.text,
-                           photo=photo)))
+            print("""\
+<div>
+  <!-- entry -->
+  <h3>{title}</h3>
+  <b>{date}</b> <i>{time}</i>
+  <p>{text}</p>
+  {photo}
+</div>
+""".format(date=date, time=time,
+           title=entry.title,
+           text=entry.text,
+           photo=photo))
 
 def main():
     CLI().run()
