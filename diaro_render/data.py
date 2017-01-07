@@ -7,16 +7,16 @@ from collections import namedtuple
 import logging
 
 
-DIARO_FOLDER_PROPS = ['title', 'color', 'pattern']
+DIARO_FOLDER_PROPS = ['uid', 'title', 'color', 'pattern']
 DiaroFolder = namedtuple('DiaroFolder', DIARO_FOLDER_PROPS)
 
-DIARO_LOCATION_PROPS = ['title', 'address', 'lat', 'lng', 'zoom']
+DIARO_LOCATION_PROPS = ['uid', 'title', 'address', 'lat', 'lng', 'zoom']
 DiaroLocation = namedtuple('DiaroLocation', DIARO_LOCATION_PROPS)
 
-DIARO_ATTACHMENT_PROPS = ['entry_uid', 'type', 'filename', 'position']
+DIARO_ATTACHMENT_PROPS = ['uid', 'entry_uid', 'type', 'filename', 'position']
 DiaroAttachment = namedtuple('DiaroAttachment', DIARO_ATTACHMENT_PROPS)
 
-DIARO_ENTRY_PROPS = ['date', 'tz_offset', 'title', 'text',
+DIARO_ENTRY_PROPS = ['uid', 'date', 'tz_offset', 'title', 'text',
                      'folder_uid', 'location_uid', 'tags',
                      'primary_photo_uid']
 DiaroEntry = namedtuple('DiaroEntry', DIARO_ENTRY_PROPS)
@@ -32,22 +32,39 @@ class Diaro(object):
         root = ET.parse(filename).getroot()
         self._parse_root(root)
 
-    def _gather_properties(self, node, properties_without_uid):
-        properties = {
-            'uid': None,
-        }
+    def get_entries_for_folder(self, folder_uid):
+        """
+        Return entries in a given folder, in date order.
+        """
 
-        for prop in properties_without_uid:
-            properties[prop] = None
+        entries = [entry for entry in self.entries.values()
+                   if entry.folder_uid == folder_uid]
+        entries.sort(key=lambda x: x.date)
+        return entries
+
+    def get_attachments_for_entry(self, entry_uid):
+        """
+        Return attachments for a given entry in position order.
+        """
+
+        attachments = [attachment for attachment in self.attachments.values()
+                       if attachment.entry_uid == entry_uid]
+        attachments.sort(key=lambda x: x.position)
+        return attachments
+
+    def _gather_properties(self, node, properties):
+        props = {}
+        for prop in properties:
+            props[prop] = None
 
         for prop in node:
-            if properties[prop.tag] is None:
-                properties[prop.tag] = prop.text or ''
+            if props[prop.tag] is None:
+                props[prop.tag] = prop.text or ''
             else:
                 logging.warning("property %s defined twice for node %s",
                                 node.tag)
 
-        return properties
+        return props
 
     def _parse_folders(self, folders):
         for folder in folders:
@@ -57,7 +74,7 @@ class Diaro(object):
                 logging.error("incomplete property list for folder: %r",
                               properties)
             else:
-                uid = properties.pop('uid')
+                uid = properties['uid']
                 diaro_folder = DiaroFolder(**properties)
                 self.folders[uid] = diaro_folder
                 logging.info("folder: %s", uid)
@@ -70,7 +87,7 @@ class Diaro(object):
                 logging.error("incomplete property list for location: %r",
                               properties)
             else:
-                uid = properties.pop('uid')
+                uid = properties['uid']
                 diaro_location = DiaroLocation(**properties)
                 self.locations[uid] = diaro_location
                 logging.info("location: %s", uid)
@@ -83,7 +100,8 @@ class Diaro(object):
                 logging.error("incomplete property list for entry: %r",
                               properties)
             else:
-                uid = properties.pop('uid')
+                uid = properties['uid']
+                properties['date'] = int(properties['date'])
                 diaro_entry = DiaroEntry(**properties)
                 self.entries[uid] = diaro_entry
                 logging.info("entry: %s", uid)
@@ -97,7 +115,7 @@ class Diaro(object):
                 logging.error("incomplete property list for attachment: %r",
                               properties)
             else:
-                uid = properties.pop('uid')
+                uid = properties['uid']
                 diaro_attachment = DiaroAttachment(**properties)
                 self.attachments[uid] = diaro_attachment
                 logging.info("attachment: %s", uid)

@@ -144,7 +144,7 @@ class TestDiaro(object):
         assert len(diaro.entries) == 1
         assert '1' in diaro.entries
         entry = diaro.entries['1']
-        assert entry.date == '1434997052007'
+        assert entry.date == 1434997052007
         assert entry.tz_offset == '+01:00'
         assert entry.title == 'title'
         assert entry.text == 'text'
@@ -180,3 +180,97 @@ class TestDiaro(object):
         assert attachment.type == 'photo'
         assert attachment.filename == 'photo.jpg'
         assert attachment.position == '1'
+
+    def test_get_entries_for_folder(self):
+        xml = dedent("""\
+            <data version="2">
+            <table name="diaro_folders">
+            <r>
+               <uid>2</uid>
+               <title>Diary entries</title>
+               <color>#000000</color>
+               <pattern>pattern01</pattern>
+            </r>
+            </table>
+            <table name="diaro_entries">
+            <r>
+               <uid>1</uid>
+               <date>1434997052007</date>
+               <tz_offset>+01:00</tz_offset>
+               <title>title</title>
+               <text>text</text>
+               <folder_uid>2</folder_uid>
+               <location_uid>3</location_uid>
+               <tags></tags>
+               <primary_photo_uid>4</primary_photo_uid>
+            </r>
+            <r>
+               <uid>4</uid>
+               <date>1434997052007</date>
+               <tz_offset>+01:00</tz_offset>
+               <title>not selected</title>
+               <text>text</text>
+               <folder_uid>7</folder_uid>
+               <location_uid>3</location_uid>
+               <tags></tags>
+               <primary_photo_uid>4</primary_photo_uid>
+            </r>
+            </table>
+            </data>
+            """)
+
+        with NamedTemporaryFile(mode='w') as fp:
+            fp.write(xml)
+            fp.flush()
+            diaro = Diaro(filename=fp.name)
+
+        assert len(diaro.entries) == 2
+        assert '2' in diaro.folders
+
+        entries = diaro.get_entries_for_folder('2')
+        assert len(entries) == 1
+        assert entries[0].title == 'title'
+
+    def get_attachments_for_entry(self, entry_uid):
+        xml = dedent("""\
+            <data version="2">
+            <table name="diaro_attachments">
+            <r>
+               <uid>3</uid>
+               <entry_uid>1</entry_uid>
+               <type>photo</type>
+               <filename>photo2.jpg</filename>
+               <position>2</position>
+            </r>
+            <r>
+               <uid>2</uid>
+               <entry_uid>1</entry_uid>
+               <type>photo</type>
+               <filename>photo1.jpg</filename>
+               <position>1</position>
+            </r>
+            </table>
+            <table name="diaro_entries">
+            <r>
+               <uid>1</uid>
+               <date>1434997052007</date>
+               <tz_offset>+01:00</tz_offset>
+               <title>title</title>
+               <text>text</text>
+               <folder_uid>2</folder_uid>
+               <location_uid>3</location_uid>
+               <tags></tags>
+               <primary_photo_uid>4</primary_photo_uid>
+            </r>
+            </table>
+            </data>
+            """)
+
+        with NamedTemporaryFile(mode='w') as fp:
+            fp.write(xml)
+            fp.flush()
+            diaro = Diaro(filename=fp.name)
+
+        attachments = diaro.get_attachments_for_entry('1')
+        assert len(attachments) == 2
+        assert attachment[0].position < attachment[1].position
