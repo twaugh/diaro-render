@@ -9,6 +9,7 @@ setup(
     author='Tim Waugh',
     author_email='tim@cyberelk.net',
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
+    license="GPLv2",
     entry_points={
           'console_scripts': ['diaro-render=diaro_render.cli.main:main'],
     },
