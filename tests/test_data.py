@@ -203,7 +203,7 @@ class TestDiaro(object):
         assert attachment.filename == 'photo.jpg'
         assert attachment.position == '1'
 
-    def test_get_entries_for_folder(self):
+    def test_get_entries_for_folders(self):
         xml = dedent("""\
             <data version="2">
             <table name="diaro_folders">
@@ -212,6 +212,12 @@ class TestDiaro(object):
                <title>Diary entries</title>
                <color>#000000</color>
                <pattern>pattern01</pattern>
+            </r>
+            <r>
+               <uid>3</uid>
+               <title>Quotes</title>
+               <color>#111111</color>
+               <pattern>pattern02</pattern>
             </r>
             </table>
             <table name="diaro_entries">
@@ -237,6 +243,17 @@ class TestDiaro(object):
                <tags></tags>
                <primary_photo_uid>4</primary_photo_uid>
             </r>
+            <r>
+               <uid>5</uid>
+               <date>1434997052006</date>
+               <tz_offset>+01:00</tz_offset>
+               <title>Quote</title>
+               <text>quote</text>
+               <folder_uid>3</folder_uid>
+               <location_uid>4</location_uid>
+               <tags></tags>
+               <primary_photo_uid></primary_photo_uid>
+            </r>
             </table>
             </data>
             """)
@@ -246,12 +263,18 @@ class TestDiaro(object):
             fp.flush()
             diaro = Diaro(filename=fp.name)
 
-        assert len(diaro.entries) == 2
+        assert len(diaro.entries) == 3
+        assert len(diaro.folders) == 2
         assert '2' in diaro.folders
+        assert '3' in diaro.folders
 
-        entries = diaro.get_entries_for_folder('2')
+        entries = diaro.get_entries_for_folders(['2'])
         assert len(entries) == 1
         assert entries[0].title == 'title'
+
+        entries = diaro.get_entries_for_folders((x for x in ['2', '3']))
+        assert len(entries) == 2
+        assert entries[0].title == 'Quote'
 
     def get_attachments_for_entry(self, entry_uid):
         xml = dedent("""\

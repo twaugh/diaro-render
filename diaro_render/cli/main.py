@@ -32,8 +32,9 @@ class CLI(object):
         parser = ArgumentParser('diaro-render')
         parser.add_argument('file', metavar='FILE', nargs=1,
                             help='path to DiaroBackup.xml')
-        parser.add_argument('--folder', metavar='UID',
-                            help='folder UID to filter by')
+        parser.add_argument('--folder', metavar='UID', action='append',
+                            help='folder UID to filter by '
+                            '(may be given more than once)')
         parser.add_argument('--mediapath', help='path to media files',
                             default='')
         parser.add_argument('--thumbsuffix', help='suffix for media thumbnails',
@@ -52,7 +53,7 @@ class CLI(object):
 
             return
 
-        entries = diaro.get_entries_for_folder(self.namespace.folder)
+        entries = diaro.get_entries_for_folders(self.namespace.folder)
 
         if self.namespace.only_year:
             only_year = int(self.namespace.only_year)
