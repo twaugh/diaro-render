@@ -79,7 +79,7 @@ class CLI(object):
             attachments = diaro.get_attachments_for_entry(entry.uid)
             for attachment in attachments:
                 assert attachment.type == 'photo'
-                fmt = '<div><a href="{imgfullpath}"><img src="{imgthumbpath}" alt="" /><a></div>'
+                fmt = '<div><a href="{imgfullpath}"><img src="{imgthumbpath}" alt="" /></a></div>'
                 filename, ext = os.path.splitext(attachment.filename)
                 photo += fmt.format(
                     imgfullpath=os.path.join(mediapath,
