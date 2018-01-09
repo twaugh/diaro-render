@@ -91,11 +91,12 @@ class CLI(object):
 <div>
   <!-- entry -->
   <h3>{title}</h3>
-  <b>{date}</b> <i>{time}</i>
+  <small><b>{date}</b> <i>{time}</i> ({foldertitle})</small>
   <p>{text}</p>
   {photo}
 </div>
 """.format(date=date, time=time,
+           foldertitle=diaro.folders[entry.folder_uid].title,
            title=entry.title,
            text=entry.text,
            photo=photo))
