@@ -1,7 +1,7 @@
 """
 Read Diaro data format
 
-Copyright (C) 2017
+Copyright (C) 2017, 2019
 Authors:
   Tim Waugh <tim@cyberelk.net>
 
@@ -36,7 +36,8 @@ DiaroAttachment = namedtuple('DiaroAttachment', DIARO_ATTACHMENT_PROPS)
 
 DIARO_ENTRY_PROPS = ['uid', 'date', 'tz_offset', 'title', 'text',
                      'folder_uid', 'location_uid', 'tags',
-                     'primary_photo_uid']
+                     'primary_photo_uid', 'weather_temperature',
+                     'weather_icon', 'weather_description', 'mood']
 DiaroEntry = namedtuple('DiaroEntry', DIARO_ENTRY_PROPS)
 
 
