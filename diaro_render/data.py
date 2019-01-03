@@ -38,7 +38,12 @@ DIARO_ENTRY_PROPS = ['uid', 'date', 'tz_offset', 'title', 'text',
                      'folder_uid', 'location_uid', 'tags',
                      'primary_photo_uid', 'weather_temperature',
                      'weather_icon', 'weather_description', 'mood']
-DiaroEntry = namedtuple('DiaroEntry', DIARO_ENTRY_PROPS)
+
+
+class DiaroEntry(object):
+    def __init__(self, **kwargs):
+        assert all(kwarg in DIARO_ENTRY_PROPS for kwarg in kwargs)
+        self.__dict__.update(kwargs)
 
 
 class Diaro(object):
@@ -74,11 +79,8 @@ class Diaro(object):
 
     def _gather_properties(self, node, properties):
         props = {}
-        for prop in properties:
-            props[prop] = None
-
         for prop in node:
-            if props[prop.tag] is None:
+            if prop.tag not in props:
                 props[prop.tag] = prop.text or ''
             else:
                 logging.warning("property %s defined twice for node %s",
