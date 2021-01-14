@@ -38,6 +38,26 @@ class TestDiaro(object):
             fp.flush()
             diaro = Diaro(filename=fp.name)
 
+    def test_template(self):
+        xml = dedent("""\
+            <data version="2">
+            <table name="diaro_templates">
+            <r>
+               <uid>73c5b749a50f0628667988147ca663c2</uid>
+               <name>Template</name>
+               <title>Title</title>
+               <color>#000000</color>
+               <text>text01</text>
+            </r>
+            </table>
+            </data>
+            """)
+
+        with NamedTemporaryFile(mode='w') as fp:
+            fp.write(xml)
+            fp.flush()
+            diaro = Diaro(filename=fp.name)
+
     def test_folder(self):
         xml = dedent("""\
             <data version="2">
