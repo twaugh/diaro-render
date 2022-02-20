@@ -157,7 +157,7 @@ class Diaro(object):
                     self._parse_entries(child)
                 elif name == 'diaro_attachments':
                     self._parse_attachments(child)
-                elif name == 'diaro_templates':
+                elif name in ('diaro_templates', 'diaro_moods'):
                     continue
                 else:
                     raise NotImplementedError
