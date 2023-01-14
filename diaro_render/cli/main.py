@@ -64,8 +64,10 @@ class CLI(object):
 
         if self.namespace.summary:
             for entry in entries:
-                print("{date}: {title}".format(date=entry.date,
-                                               title=entry.title))
+                date = datetime.fromtimestamp(entry.date / 1000.0).isoformat(timespec='minutes')
+                print("{date} [{folder}]: {title}".format(date=date,
+                                                          folder=entry.folder_uid,
+                                                          title=entry.title))
             return
 
         # render HTML
