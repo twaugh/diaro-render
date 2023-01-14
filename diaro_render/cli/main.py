@@ -46,13 +46,6 @@ class CLI(object):
 
     def run(self):
         diaro = Diaro(self.namespace.file[0])
-        if self.namespace.folder is None:
-            # Display folders
-            for uid, folder in diaro.folders.items():
-                print("{uid}: {title}".format(uid=uid, title=folder.title))
-
-            return
-
         entries = diaro.get_entries_for_folders(self.namespace.folder)
 
         if self.namespace.only_year:
@@ -61,6 +54,15 @@ class CLI(object):
                              entry) for entry in entries]
             entries = [entry for year, entry in year_entries
                        if year == only_year]
+
+        if self.namespace.folder is None:
+            # Display folders
+            year_folder_uids = set(entry.folder_uid for entry in entries)
+            year_folders = filter(lambda item: item[0] in year_folder_uids, diaro.folders.items())
+            for uid, folder in year_folders:
+                print("{uid}: {title}".format(uid=uid, title=folder.title))
+
+            return
 
         if self.namespace.summary:
             for entry in entries:
