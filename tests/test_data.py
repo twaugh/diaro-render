@@ -288,6 +288,10 @@ class TestDiaro(object):
         assert '2' in diaro.folders
         assert '3' in diaro.folders
 
+        entries = diaro.get_entries_for_folders(None)
+        assert len(entries) == 3
+        assert entries[0].title == 'Quote'
+
         entries = diaro.get_entries_for_folders(['2'])
         assert len(entries) == 1
         assert entries[0].title == 'title'

@@ -56,14 +56,14 @@ class Diaro(object):
         root = ET.parse(filename).getroot()
         self._parse_root(root)
 
-    def get_entries_for_folders(self, folder_uids):
+    def get_entries_for_folders(self, folder_uids=None):
         """
         Return entries in a given folders, in date order.
         """
 
-        folder_uids = list(folder_uids)
+        folder_uids = list(folder_uids or [])
         entries = [entry for entry in self.entries.values()
-                   if entry.folder_uid in folder_uids]
+                   if not folder_uids or entry.folder_uid in folder_uids]
         entries.sort(key=lambda x: x.date)
         return entries
 
