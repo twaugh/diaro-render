@@ -34,6 +34,9 @@ DiaroLocation = namedtuple('DiaroLocation', DIARO_LOCATION_PROPS)
 DIARO_ATTACHMENT_PROPS = ['uid', 'entry_uid', 'type', 'filename', 'position']
 DiaroAttachment = namedtuple('DiaroAttachment', DIARO_ATTACHMENT_PROPS)
 
+DIARO_TAG_PROPS = ['uid', 'title']
+DiaroTag = namedtuple('DiaroTag', DIARO_TAG_PROPS)
+
 DIARO_ENTRY_PROPS = ['uid', 'date', 'tz_offset', 'title', 'text',
                      'folder_uid', 'location_uid', 'tags',
                      'primary_photo_uid', 'weather_temperature',
@@ -52,6 +55,7 @@ class Diaro(object):
         self.locations = {}  # uid -> DiaroLocation
         self.attachments = {}  # uid -> DiaroAttachment
         self.entries = {}  # uid -> DiaroEntry
+        self.tags = {}  # uid -> DiaroTag
 
         root = ET.parse(filename).getroot()
         self._parse_root(root)
@@ -142,6 +146,19 @@ class Diaro(object):
                 self.attachments[uid] = diaro_attachment
                 logging.info("attachment: %s", uid)
 
+    def _parse_tags(self, tags):
+        for tag in tags:
+            assert tag.tag == 'r'
+            properties = self._gather_properties(tag, DIARO_TAG_PROPS)
+            if None in properties.values():
+                logging.error("incomplete property list for tag: %r",
+                              properties)
+            else:
+                uid = properties['uid']
+                diaro_tag = DiaroTag(**properties)
+                self.tags[uid] = diaro_tag
+                logging.info("tag: %s", uid)
+
     def _parse_root(self, root):
         assert root.tag == 'data'
         assert root.attrib['version'] == '2'
@@ -159,7 +176,9 @@ class Diaro(object):
                     self._parse_attachments(child)
                 elif name in ('diaro_templates', 'diaro_moods'):
                     continue
+                elif name == 'diaro_tags':
+                    self._parse_tags(child)
                 else:
-                    raise NotImplementedError
+                    raise NotImplementedError(f"table: {name}")
             else:
                 raise NotImplementedError
